@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Melodía Total - Tienda de Instrumentos</title>
+  <style>
+    body { font-family: Arial; background: #f0f0f0; padding: 20px; }
+    h1 { color: #333; }
+    .hidden { display: none; }
+    button, select, input { margin: 5px; }
+    .section { margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+
+  <h1>Melodía Total - Tienda de Instrumentos</h1>
+
+  <div class="section">
+    <label>Ingresa tu nombre: <input id="nombreUsuario" /></label>
+    <button onclick="iniciar()">Entrar</button>
+  </div>
+
+  <div id="menu" class="hidden section">
+    <p>Bienvenido, <span id="nombreSpan"></span>! Selecciona una opción:</p>
+    <button onclick="mostrarInstrumentos()">1: Ver instrumentos</button>
+    <button onclick="comprarInstrumento()">2: Comprar instrumento</button>
+    <button onclick="comprarAccesorio()">3: Comprar accesorios</button>
+    <button onclick="mostrarCompras()">4: Mostrar compras</button>
+    <button onclick="agregarInventario()">5: Agregar inventario (empleados)</button>
+    <button onclick="salir()">6: Salir</button>
+  </div>
+
+  <div id="salida" class="section"></div>
+
+  <script>
+    let instrumentos = {
+      guitarra: 10,
+      piano: 8,
+      bateria: 5,
+      violin: 9,
+      trompeta: 7,
+      bajo: 6
+    };
+
+    let accesorios = {
+      "cuerdas de guitarra": 20,
+      baquetas: 10,
+      afinador: 10,
+      pedal: 8
+    };
+
+    let compras = [];
+    let usuario = "";
+
+    function iniciar() {
+      usuario = document.getElementById("nombreUsuario").value.trim();
+      if (usuario) {
+        document.getElementById("menu").classList.remove("hidden");
+        document.getElementById("nombreSpan").innerText = usuario;
+      }
+    }
+
+    function mostrarInstrumentos() {
+      let output = "<h3>Instrumentos disponibles</h3><ul>";
+      for (let i in instrumentos) {
+        output += `<li>${i}: ${instrumentos[i]}</li>`;
+      }
+      output += `</ul><p>Total: ${Object.values(instrumentos).reduce((a,b) => a + b, 0)}</p>`;
+      document.getElementById("salida").innerHTML = output;
+    }
+
+    function comprarInstrumento() {
+      let lista = Object.keys(instrumentos).map(i => `<option value="${i}">${i}</option>`).join("");
+      document.getElementById("salida").innerHTML = `
+        <h3>Comprar Instrumento</h3>
+        <select id="instrumentoSelect">${lista}</select>
+        <button onclick="agregarAlCarrito()">Agregar</button>
+        <button onclick="finalizarCompra()">Finalizar</button>
+        <div id="carritoInstrumentos"></div>
+      `;
+      window.carrito = [];
+    }
+
+    function agregarAlCarrito() {
+      let inst = document.getElementById("instrumentoSelect").value;
+      if (instrumentos[inst] > 0 && !carrito.includes(inst)) {
+        carrito.push(inst);
+        instrumentos[inst]--;
+        document.getElementById("carritoInstrumentos").innerText = "Carrito: " + carrito.join(", ");
+      }
+    }
+
+    function finalizarCompra() {
+      if (carrito.length > 0) {
+        compras.push({ nombre: usuario, items: [...carrito], hora: new Date().toLocaleString() });
+        document.getElementById("salida").innerHTML = `<p>Compra realizada: ${carrito.join(", ")}</p>`;
+      }
+    }
+
+    function comprarAccesorio() {
+      let lista = Object.keys(accesorios).map(i => `<option value="${i}">${i}</option>`).join("");
+      document.getElementById("salida").innerHTML = `
+        <h3>Comprar Accesorios</h3>
+        <select id="accesorioSelect">${lista}</select>
+        <button onclick="agregarAccesorio()">Agregar</button>
+        <button onclick="finalizarAccesorio()">Finalizar</button>
+        <div id="carritoAccesorios"></div>
+      `;
+      window.carritoAccesorios = [];
+    }
+
+    function agregarAccesorio() {
+      let acc = document.getElementById("accesorioSelect").value;
+      if (accesorios[acc] > 0 && !carritoAccesorios.includes(acc)) {
+        carritoAccesorios.push(acc);
+        accesorios[acc]--;
+        document.getElementById("carritoAccesorios").innerText = "Carrito: " + carritoAccesorios.join(", ");
+      }
+    }
+
+    function finalizarAccesorio() {
+      if (carritoAccesorios.length > 0) {
+        compras.push({ nombre: usuario, items: [...carritoAccesorios], hora: new Date().toLocaleString() });
+        document.getElementById("salida").innerHTML = `<p>Compra de accesorios realizada: ${carritoAccesorios.join(", ")}</p>`;
+      }
+    }
+
+    function mostrarCompras() {
+      let html = "<h3>Compras Realizadas</h3><ul>";
+      for (let c of compras) {
+        html += `<li>${c.nombre} compró ${c.items.join(", ")} en ${c.hora}</li>`;
+      }
+      html += "</ul>";
+      document.getElementById("salida").innerHTML = html;
+    }
+
+    function agregarInventario() {
+      let clave = prompt("Nombre del empleado:");
+      let password = prompt("Contraseña:");
+      const empleados = {
+        "Nicolas": "Solara26A",
+        "Antonio": "Tennis2025",
+        "Carlos": "Hoyoen1"
+      };
+
+      if (empleados[clave] === password) {
+        let tipo = prompt("¿Agregar (1) instrumentos o (2) accesorios?");
+        let nombreItem = prompt("Nombre del nuevo elemento:");
+        let cantidad = parseInt(prompt("Cantidad:"));
+        if (tipo === "1") {
+          instrumentos[nombreItem] = (instrumentos[nombreItem] || 0) + cantidad;
+        } else if (tipo === "2") {
+          accesorios[nombreItem] = (accesorios[nombreItem] || 0) + cantidad;
+        }
+        document.getElementById("salida").innerText = `Agregado ${cantidad} ${nombreItem}(s) al inventario.`;
+      } else {
+        alert("Acceso denegado.");
+      }
+    }
+
+    function salir() {
+      alert("Gracias por visitarnos. ¡Hasta pronto!");
+      location.reload();
+    }
+  </script>
+
+</body>
+</html>
